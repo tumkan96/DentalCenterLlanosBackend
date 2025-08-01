@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.server.DentalCenterLlanos.Repository.Usuarios_RolesRepository;
 import com.server.DentalCenterLlanos.security.JwtUtil;
 import com.server.DentalCenterLlanos.Repository.UsuariosRepository;
 import com.server.DentalCenterLlanos.Repository.PersonasRepository;
@@ -26,40 +25,32 @@ import com.server.DentalCenterLlanos.Model.PersonasModel;
 import com.server.DentalCenterLlanos.Model.UsuariosModel;
 import com.server.DentalCenterLlanos.Model.Usuarios_RolesModel;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.RestController;
-
-
 
 @CrossOrigin(origins = "*")
 
 @RestController
 
 public class UsuariosController {
-	
+
 	@Autowired
 	private UsuariosRepository UsuariosRepository;
 	@Autowired
 	private PersonasRepository personasRepository;
-	 @Autowired
-	    private PasswordEncoder passwordEncoder; 
-	 
-	   public UsuariosController(UsuariosRepository usuariosRepository, 
-               PersonasRepository personasRepository,
-               PasswordEncoder passwordEncoder) {
-this.UsuariosRepository = usuariosRepository;
-this.personasRepository = personasRepository;
-this.passwordEncoder = passwordEncoder;
-}
+
+	public UsuariosController(UsuariosRepository usuariosRepository,
+			PersonasRepository personasRepository,
+			PasswordEncoder passwordEncoder) {
+		this.UsuariosRepository = usuariosRepository;
+		this.personasRepository = personasRepository;
+	}
 
 	@GetMapping("/api/listarUsuarios")
 	public List<UsuariosModel> listaUsuarios() {
 		return UsuariosRepository.findAll();
 	}
 
-	// LOGIN
-	/*@PostMapping("/api/login")
+	@PostMapping("/api/login")
 	public ResponseEntity<Map<String, Object>> login(@RequestBody UsuariosModel usuario) {
 		Map<String, Object> response = new HashMap<>();
 
@@ -69,19 +60,21 @@ this.passwordEncoder = passwordEncoder;
 
 			// Validar si el usuario existe
 			if (user != null) {
-				// Verificar si el usuario está activo (cod_estado == 1)
+				// Verificar si el usuario está activo
 				if (user.getCod_estado() == 0) {
 					response.put("authenticated", false);
 					response.put("message", "Usuario inactivo.");
-					return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response); // 403 Forbidden
+					return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
 				}
 
-				// Validar si la contraseña coincide
-				if (user.getContrasena().equals(usuario.getContrasena())) {
-					// Obtener roles del usuario desde la lista usuariosRoles
+				// Comparar la contraseña directamente (sin BCrypt)
+				if (usuario.getContrasena().equals(user.getContrasena())) {
+					// Generar el JWT
+					String token = "Bearer " + JwtUtil.generateToken(user.getUsuarios(), user.getUsuariosRoles());
+
+					// Obtener roles del usuario
 					List<Map<String, Object>> roles = new ArrayList<>();
 					for (Usuarios_RolesModel usuarioRol : user.getUsuariosRoles()) {
-						// Crear un mapa para cada rol con su id y nombre
 						Map<String, Object> roleData = new HashMap<>();
 						roleData.put("id_rol", usuarioRol.getRol().getId_rol());
 						roleData.put("nombre", usuarioRol.getRol().getNombre());
@@ -91,86 +84,28 @@ this.passwordEncoder = passwordEncoder;
 					// Construir la respuesta
 					response.put("authenticated", true);
 					response.put("message", "Inicio de sesión exitoso");
+					response.put("token", token);
 					response.put("persona", user.getPersona());
 					response.put("roles", roles);
 
+					// System.out.println("Generated Token: " + token);
+
 					return ResponseEntity.ok(response);
 				} else {
-					// Respuesta en caso de que la contraseña no coincida
 					response.put("authenticated", false);
 					response.put("message", "Usuario o contraseña incorrectos.");
-					return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response); // 401 Unauthorized
+					return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
 				}
 			} else {
-				// Respuesta en caso de que no se encuentre el usuario
 				response.put("authenticated", false);
 				response.put("message", "Usuario no encontrado.");
-				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response); // 404 Not Found
+				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
 			}
 		} catch (Exception e) {
-			// Manejo de excepción
 			response.put("authenticated", false);
 			response.put("error", "Ocurrió un error durante la autenticación: " + e.getMessage());
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response); // 500 Internal Server Error
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
 		}
-	}
-*/
-	@PostMapping("/api/login")
-	public ResponseEntity<Map<String, Object>> login(@RequestBody UsuariosModel usuario) {
-	    Map<String, Object> response = new HashMap<>();
-
-	    try {
-	        // Buscar el usuario en la base de datos
-	        UsuariosModel user = UsuariosRepository.findByUsuarios(usuario.getUsuarios());
-
-	        // Validar si el usuario existe
-	        if (user != null) {
-	            // Verificar si el usuario está activo
-	            if (user.getCod_estado() == 0) {
-	                response.put("authenticated", false);
-	                response.put("message", "Usuario inactivo.");
-	                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
-	            }
-
-	            // Comparar la contraseña directamente (sin BCrypt)
-	            if (usuario.getContrasena().equals(user.getContrasena())) {
-	                // Generar el JWT
-	                String token = "Bearer "+JwtUtil.generateToken(user.getUsuarios(), user.getUsuariosRoles());
-
-	                // Obtener roles del usuario
-	                List<Map<String, Object>> roles = new ArrayList<>();
-	                for (Usuarios_RolesModel usuarioRol : user.getUsuariosRoles()) {
-	                    Map<String, Object> roleData = new HashMap<>();
-	                    roleData.put("id_rol", usuarioRol.getRol().getId_rol());
-	                    roleData.put("nombre", usuarioRol.getRol().getNombre());
-	                    roles.add(roleData);
-	                }
-
-	                // Construir la respuesta
-	                response.put("authenticated", true);
-	                response.put("message", "Inicio de sesión exitoso");
-	                response.put("token", token);
-	                response.put("persona", user.getPersona());
-	                response.put("roles", roles);
-
-	              //  System.out.println("Generated Token: " + token);
-
-	                return ResponseEntity.ok(response);
-	            } else {
-	                response.put("authenticated", false);
-	                response.put("message", "Usuario o contraseña incorrectos.");
-	                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
-	            }
-	        } else {
-	            response.put("authenticated", false);
-	            response.put("message", "Usuario no encontrado.");
-	            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-	        }
-	    } catch (Exception e) {
-	        response.put("authenticated", false);
-	        response.put("error", "Ocurrió un error durante la autenticación: " + e.getMessage());
-	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
-	    }
 	}
 
 	// HABILITAR USUARIO

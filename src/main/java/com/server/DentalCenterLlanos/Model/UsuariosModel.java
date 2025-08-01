@@ -34,8 +34,8 @@ public class UsuariosModel {
     @JoinColumn(name = "id_persona", referencedColumnName = "id_persona")
     private PersonasModel persona;
 
-    @Column(name = "cod_estado")
-    private int cod_estado;
+	    @Column(name = "cod_estado")
+	    private int cod_estado;
 
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     @JsonManagedReference

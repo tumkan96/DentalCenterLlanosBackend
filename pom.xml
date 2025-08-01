@@ -31,6 +31,12 @@
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
+        <!-- Spring Boot Security Starter - AGREGADO -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+
         <!-- Spring Boot DevTools for development convenience -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -60,13 +66,6 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- Custom dependency: Reparacion -->
-        <dependency>
-            <groupId>com.proyect</groupId>
-            <artifactId>reparacion</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
-        </dependency>
-
         <!-- JSON Web Token dependencies -->
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
@@ -86,16 +85,18 @@
             <scope>runtime</scope>
         </dependency>
 
-        <dependency>
-        	<groupId>com.LlanosDentalCare</groupId>
-        	<artifactId>LlanosDentalCare</artifactId>
-        	<version>0.0.1-SNAPSHOT</version>
-        </dependency>
-        
-        <dependency>
-    <groupId>org.springframework.security</groupId>
-    <artifactId>spring-security-crypto</artifactId>
-</dependency>
+        <!-- DEPENDENCIA PROBLEMÁTICA REMOVIDA -->
+        <!-- <dependency>
+            <groupId>com.LlanosDentalCare</groupId>
+            <artifactId>LlanosDentalCare</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency> -->
+
+        <!-- Spring Security Crypto ya está incluido en spring-boot-starter-security -->
+        <!-- <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-crypto</artifactId>
+        </dependency> -->
     </dependencies>
 
     <build>

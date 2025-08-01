@@ -3,16 +3,17 @@ package com.server.DentalCenterLlanos.security;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
 
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.LlanosDentalCare.LlanosDentalCareBackend.Model.Usuarios_RolesModel;
+import javax.crypto.SecretKey;
 
 public class JwtUtil {
 
-    private static final String SECRET_KEY = "tumkan_R_96";
+    private static final SecretKey SECRET_KEY = Keys.secretKeyFor(SignatureAlgorithm.HS256);
     private static final long EXPIRATION_TIME = 86400000; // 24 horas en milisegundos
 
     // Generar el token

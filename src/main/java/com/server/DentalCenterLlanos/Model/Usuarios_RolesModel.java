@@ -19,7 +19,7 @@ RolesModel rol;
 
 @ManyToOne
 @MapsId("usuario")
-@JoinColumn(name = "usuario")
+@JoinColumn(name = "usuario")	
 UsuariosModel usuario;
 
 public Usuarios_RolesPK getUsuarios_RolesPK() {
