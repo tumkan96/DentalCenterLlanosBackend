@@ -30,8 +30,12 @@ public class PersonasController {
 	// LISTAR PERSONAS
 	@Autowired
 	@GetMapping("/api/ListarPersonas")
-	public List<PersonasModel> ListarPersonas() {
-		return PersonasRepository.findAllOrderedByIdPersona();
+	public ResponseEntity<List<PersonasModel>> listarPersonas() {
+		List<PersonasModel> personas = PersonasRepository.findAll();
+		if (personas.isEmpty()) {
+			return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+		}
+		return new ResponseEntity<>(personas, HttpStatus.OK);
 	}
 
 	// ADICIONAR PERSONA
