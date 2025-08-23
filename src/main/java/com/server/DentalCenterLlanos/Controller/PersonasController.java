@@ -19,8 +19,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.server.DentalCenterLlanos.Model.PersonasModel;
 import com.server.DentalCenterLlanos.Repository.PersonasRepository;
 
-
-
 @CrossOrigin(origins = "*")
 @RestController
 public class PersonasController {
@@ -40,45 +38,70 @@ public class PersonasController {
 
 	// ADICIONAR PERSONA
 	@PostMapping("/api/addPersona")
-	public void adicionarPersonas(@RequestBody PersonasModel newPersona) {
-		PersonasRepository.save(newPersona);
+	public ResponseEntity<PersonasModel> adicionarPersonas(@RequestBody PersonasModel newPersona) {
+		PersonasModel savedPersona = PersonasRepository.save(newPersona);
+		return ResponseEntity.status(HttpStatus.CREATED) // 201
+				.body(savedPersona); // opcional: puedes retornar null si no quieres retornar el objeto
 	}
-	
+
+	// MODIFICAR PERSONA
+	@PutMapping("/api/updatePersona/{id_persona}")
+	public ResponseEntity<Object> updatePersona(@PathVariable("id_persona") Long id_persona,
+			@RequestBody PersonasModel personaActualizada) {
+		Optional<PersonasModel> optionalPersona = PersonasRepository.findById(id_persona);
+		if (optionalPersona.isPresent()) {
+			PersonasModel personaExistente = optionalPersona.get();
+
+			// Actualizar campos permitidos
+			personaExistente.setNombres(personaActualizada.getNombres());
+			personaExistente.setApellido_paterno(personaActualizada.getApellido_paterno());
+			personaExistente.setApellido_materno(personaActualizada.getApellido_materno());
+			personaExistente.setCedula_identidad(personaActualizada.getCedula_identidad());
+			personaExistente.setTelefono_celular(personaActualizada.getTelefono_celular());
+			personaExistente.setFotografia(personaActualizada.getFotografia());
+
+			PersonasRepository.save(personaExistente);
+
+			Map<String, String> response = new HashMap<>();
+			response.put("message", "Persona actualizada correctamente.");
+			return new ResponseEntity<>(response, HttpStatus.OK);
+		} else {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Persona no encontrada.");
+		}
+	}
+
 	// INHABILITAR PERSONA
-		@PutMapping("/api/inhabilPersona/{seq_persona}")
-		public ResponseEntity<Object> inhabilPersona(@PathVariable("seq_persona") Long seq_persona) {
-			Optional<PersonasModel> optionalPersona = PersonasRepository.findById(seq_persona);
-			if (optionalPersona.isPresent()) {
-				PersonasModel persona = optionalPersona.get();
-				persona.setCod_estado(0);
-				PersonasRepository.save(persona);
+	@PutMapping("/api/inhabilPersona/{id_persona}")
+	public ResponseEntity<Object> inhabilPersona(@PathVariable("id_persona") Long id_persona) {
+		Optional<PersonasModel> optionalPersona = PersonasRepository.findById(id_persona);
+		if (optionalPersona.isPresent()) {
+			PersonasModel persona = optionalPersona.get();
+			persona.setCod_estado(0);
+			PersonasRepository.save(persona);
 
-				// Crear un objeto JSON con un mensaje informativo
-				Map<String, String> response = new HashMap<>();
-				response.put("message", "Inhabilitado.");
-
-				return new ResponseEntity<>(response, HttpStatus.OK);
-			} else {
-				return ResponseEntity.notFound().build();
-			}
+			Map<String, String> response = new HashMap<>();
+			response.put("message", "Persona inhabilitada correctamente.");
+			return new ResponseEntity<>(response, HttpStatus.OK);
+		} else {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Persona no encontrada.");
 		}
+	}
 
-		// HABILITAR PERSONA
-		@PutMapping("/api/habilPersona/{seq_persona}")
-		public ResponseEntity<Object> habilPersona(@PathVariable("seq_persona") Long seq_persona) {
-			Optional<PersonasModel> optionalPersona = PersonasRepository.findById(seq_persona);
-			if (optionalPersona.isPresent()) {
-				PersonasModel persona = optionalPersona.get();
-				persona.setCod_estado(1);
-				PersonasRepository.save(persona);
+	// HABILITAR PERSONA
+	@PutMapping("/api/habilPersona/{id_persona}")
+	public ResponseEntity<Object> habilPersona(@PathVariable("id_persona") Long id_persona) {
+		Optional<PersonasModel> optionalPersona = PersonasRepository.findById(id_persona);
+		if (optionalPersona.isPresent()) {
+			PersonasModel persona = optionalPersona.get();
+			persona.setCod_estado(1);
+			PersonasRepository.save(persona);
 
-				Map<String, String> response = new HashMap<>();
-				response.put("message", "Habilitado.");
-
-				return new ResponseEntity<>(response, HttpStatus.OK);
-			} else {
-				return ResponseEntity.notFound().build();
-			}
-
+			Map<String, String> response = new HashMap<>();
+			response.put("message", "Persona habilitada correctamente.");
+			return new ResponseEntity<>(response, HttpStatus.OK);
+		} else {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Persona no encontrada.");
 		}
+	}
+
 }
