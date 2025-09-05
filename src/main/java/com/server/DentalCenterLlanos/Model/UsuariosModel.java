@@ -1,46 +1,32 @@
 package com.server.DentalCenterLlanos.Model;
 
-
 import java.util.List;
-
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
-
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.*;
 
 @Entity
 @Table(name = "usuarios")
 @JsonIgnoreProperties(value = { "usuariosRoles" })
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "usuarios")
 public class UsuariosModel {
+
     @Id
-    @Column(name = "usuarios")
+    @Column(name = "usuario")
     private String usuarios;
 
     @Column(name = "contrasena")
     private String contrasena;
 
-    @ManyToOne
-    @JoinColumn(name = "id_persona", referencedColumnName = "id_persona")
+    @OneToOne
+    @JoinColumn(name = "id_persona", referencedColumnName = "id_persona", nullable = false, unique = true)
     private PersonasModel persona;
 
-	    @Column(name = "cod_estado")
-	    private int cod_estado;
+    @Column(name = "estado")
+    private boolean estado;
 
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    @JsonManagedReference
     @OneToMany(mappedBy = "usuario", fetch = FetchType.LAZY)
-    private List<Usuarios_RolesModel> usuariosRoles;
+    private List<UsuariosRolesModel> usuariosRoles;
 
     public String getUsuarios() {
         return usuarios;
@@ -58,14 +44,6 @@ public class UsuariosModel {
         this.contrasena = contrasena;
     }
 
-    public int getCod_estado() {
-        return cod_estado;
-    }
-
-    public void setCod_estado(int cod_estado) {
-        this.cod_estado = cod_estado;
-    }
-
     public PersonasModel getPersona() {
         return persona;
     }
@@ -74,11 +52,19 @@ public class UsuariosModel {
         this.persona = persona;
     }
 
-    public List<Usuarios_RolesModel> getUsuariosRoles() {
+    public boolean isEstado() {
+        return estado;
+    }
+
+    public void setEstado(boolean estado) {
+        this.estado = estado;
+    }
+
+    public List<UsuariosRolesModel> getUsuariosRoles() {
         return usuariosRoles;
     }
 
-    public void setUsuariosRoles(List<Usuarios_RolesModel> usuariosRoles) {
+    public void setUsuariosRoles(List<UsuariosRolesModel> usuariosRoles) {
         this.usuariosRoles = usuariosRoles;
     }
 }

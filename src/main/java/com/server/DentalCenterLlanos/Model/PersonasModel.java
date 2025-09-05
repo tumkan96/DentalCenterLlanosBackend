@@ -1,104 +1,111 @@
 package com.server.DentalCenterLlanos.Model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.*;
 
 @Entity
 @Table(name = "personas")
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "idPersona")
 public class PersonasModel {
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "id_persona")
-	long id_persona;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id_persona")
+    private Long idPersona;
 
-	@Column(name = "cedula_identidad")
-	String cedula_identidad;
+    @Column(name = "cedula_identidad")
+    private String cedulaIdentidad;
 
-	@Column(name = "nombres")
-	String nombres;
+    @Column(name = "nombres")
+    private String nombres;
 
-	@Column(name = "apellido_paterno")
-	String apellido_paterno;
+    @Column(name = "apellido_paterno")
+    private String apellidoPaterno;
 
-	@Column(name = "apellido_materno")
-	String apellido_materno;
+    @Column(name = "apellido_materno")
+    private String apellidoMaterno;
 
-	@Column(name = "fotografia")
-	String fotografia;
+    @Column(name = "fotografia")
+    private String fotografia;
 
-	@Column(name = "telefono_celular")
-	String telefono_celular;
+    @Column(name = "telefono_celular")
+    private String telefonoCelular;
 
-	@Column(name = "cod_estado")
-	int cod_estado;
+    @Column(name = "estado")
+    private boolean estado;
 
-	public long getId_persona() {
-		return id_persona;
-	}
+    @OneToOne(mappedBy = "persona", cascade = CascadeType.ALL)
+    private UsuariosModel usuario;
 
-	public void setId_persona(long id_persona) {
-		this.id_persona = id_persona;
-	}
+    public Long getIdPersona() {
+        return idPersona;
+    }
 
-	public String getCedula_identidad() {
-		return cedula_identidad;
-	}
+    public void setIdPersona(Long idPersona) {
+        this.idPersona = idPersona;
+    }
 
-	public void setCedula_identidad(String cedula_identidad) {
-		this.cedula_identidad = cedula_identidad;
-	}
+    public String getCedulaIdentidad() {
+        return cedulaIdentidad;
+    }
 
-	public String getNombres() {
-		return nombres;
-	}
+    public void setCedulaIdentidad(String cedulaIdentidad) {
+        this.cedulaIdentidad = cedulaIdentidad;
+    }
 
-	public void setNombres(String nombres) {
-		this.nombres = nombres;
-	}
+    public String getNombres() {
+        return nombres;
+    }
 
-	public String getApellido_paterno() {
-		return apellido_paterno;
-	}
+    public void setNombres(String nombres) {
+        this.nombres = nombres;
+    }
 
-	public void setApellido_paterno(String apellido_paterno) {
-		this.apellido_paterno = apellido_paterno;
-	}
+    public String getApellidoPaterno() {
+        return apellidoPaterno;
+    }
 
-	public String getApellido_materno() {
-		return apellido_materno;
-	}
+    public void setApellidoPaterno(String apellidoPaterno) {
+        this.apellidoPaterno = apellidoPaterno;
+    }
 
-	public void setApellido_materno(String apellido_materno) {
-		this.apellido_materno = apellido_materno;
-	}
+    public String getApellidoMaterno() {
+        return apellidoMaterno;
+    }
 
-	public String getFotografia() {
-		return fotografia;
-	}
+    public void setApellidoMaterno(String apellidoMaterno) {
+        this.apellidoMaterno = apellidoMaterno;
+    }
 
-	public void setFotografia(String fotografia) {
-		this.fotografia = fotografia;
-	}
+    public String getFotografia() {
+        return fotografia;
+    }
 
-	public String getTelefono_celular() {
-		return telefono_celular;
-	}
+    public void setFotografia(String fotografia) {
+        this.fotografia = fotografia;
+    }
 
-	public void setTelefono_celular(String telefono_celular) {
-		this.telefono_celular = telefono_celular;
-	}
+    public String getTelefonoCelular() {
+        return telefonoCelular;
+    }
 
-	public int getCod_estado() {
-		return cod_estado;
-	}
+    public void setTelefonoCelular(String telefonoCelular) {
+        this.telefonoCelular = telefonoCelular;
+    }
 
-	public void setCod_estado(int cod_estado) {
-		this.cod_estado = cod_estado;
-	}
+    public boolean isEstado() {
+        return estado;
+    }
 
+    public void setEstado(boolean estado) {
+        this.estado = estado;
+    }
+
+    public UsuariosModel getUsuario() {
+        return usuario;
+    }
+
+    public void setUsuario(UsuariosModel usuario) {
+        this.usuario = usuario;
+    }
 }

@@ -1,48 +1,68 @@
 package com.server.DentalCenterLlanos.Model;
 
-
-
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
+import java.util.List;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 
 @Entity
 @Table(name = "roles")
 public class RolesModel {
-	@Id
-	@Column(name = "id_rol")
-	int id_rol;
-	@Column(name = "nombre")
-	String nombre;
-	@Column(name = "cod_estado")
-	int cod_estado;
 
-	
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id_rol")
+    private Long idRol;
 
-	public int getId_rol() {
-		return id_rol;
-	}
+    @Column(name = "nombre", nullable = false, unique = true)
+    private String nombre;
 
-	public void setId_rol(int id_rol) {
-		this.id_rol = id_rol;
-	}
+    @Column(name = "descripcion")
+    private String descripcion;
 
-	public String getNombre() {
-		return nombre;
-	}
+    @Column(name = "estado", nullable = false)
+    private boolean estado;
 
-	public void setNombre(String nombre) {
-		this.nombre = nombre;
-	}
+    @OneToMany(mappedBy = "rol", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JsonBackReference
+    private List<UsuariosRolesModel> usuariosRoles;
 
-	public int getCod_estado() {
-		return cod_estado;
-	}
+    public Long getIdRol() {
+        return idRol;
+    }
 
-	public void setCod_estado(int cod_estado) {
-		this.cod_estado = cod_estado;
-	}
+    public void setIdRol(Long idRol) {
+        this.idRol = idRol;
+    }
 
+    public String getNombre() {
+        return nombre;
+    }
+
+    public void setNombre(String nombre) {
+        this.nombre = nombre;
+    }
+
+    public String getDescripcion() {
+        return descripcion;
+    }
+
+    public void setDescripcion(String descripcion) {
+        this.descripcion = descripcion;
+    }
+
+    public boolean isEstado() {
+        return estado;
+    }
+
+    public void setEstado(boolean estado) {
+        this.estado = estado;
+    }
+
+    public List<UsuariosRolesModel> getUsuariosRoles() {
+        return usuariosRoles;
+    }
+
+    public void setUsuariosRoles(List<UsuariosRolesModel> usuariosRoles) {
+        this.usuariosRoles = usuariosRoles;
+    }
 }

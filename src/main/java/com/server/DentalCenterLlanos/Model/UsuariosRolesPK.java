@@ -3,7 +3,7 @@ package com.server.DentalCenterLlanos.Model;
 import java.io.Serializable;
 import java.util.Objects;
 
-public class Usuarios_RolesPK implements Serializable {
+public class UsuariosRolesPK implements Serializable {
 	protected String usuario;
 	protected int id_rol;
 
@@ -36,7 +36,7 @@ public class Usuarios_RolesPK implements Serializable {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		Usuarios_RolesPK other = (Usuarios_RolesPK) obj;
+		UsuariosRolesPK other = (UsuariosRolesPK) obj;
 		return id_rol == other.id_rol && Objects.equals(usuario, other.usuario);
 	}
 

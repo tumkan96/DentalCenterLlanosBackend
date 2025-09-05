@@ -15,7 +15,7 @@ public class JwtUtil {
     private static final SecretKey SECRET_KEY = Keys.secretKeyFor(SignatureAlgorithm.HS256);
     private static final long EXPIRATION_TIME = 86400000; // 24 horas
 
-  public static String generateToken(String username, List<com.server.DentalCenterLlanos.Model.Usuarios_RolesModel> roles) {
+  public static String generateToken(String username, List<com.server.DentalCenterLlanos.Model.UsuariosRolesModel> roles) {
     List<String> roleNames = roles.stream()
             .map(role -> role.getRol().getNombre())
             .collect(Collectors.toList());
