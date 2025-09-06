@@ -22,9 +22,8 @@ public class ModulosModel {
 
     @OneToMany(mappedBy = "modulo", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JsonBackReference
-    private List<PermisosModel> permisos;
+    private List<ModulosPermisosModel> modulosPermisos;
 
-    // Relación con submódulos (auto-relación)
     @OneToMany(mappedBy = "parentModulo", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JsonManagedReference
     private List<ModulosModel> subModulos;
@@ -58,12 +57,12 @@ public class ModulosModel {
         this.estado = estado;
     }
 
-    public List<PermisosModel> getPermisos() {
-        return permisos;
+    public List<ModulosPermisosModel> getModulosPermisos() {
+        return modulosPermisos;
     }
 
-    public void setPermisos(List<PermisosModel> permisos) {
-        this.permisos = permisos;
+    public void setModulosPermisos(List<ModulosPermisosModel> modulosPermisos) {
+        this.modulosPermisos = modulosPermisos;
     }
 
     public List<ModulosModel> getSubModulos() {

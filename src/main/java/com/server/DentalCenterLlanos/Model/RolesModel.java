@@ -26,6 +26,10 @@ public class RolesModel {
     @JsonBackReference
     private List<UsuariosRolesModel> usuariosRoles;
 
+    @OneToMany(mappedBy = "rol", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JsonBackReference
+    private List<RolesModulosModel> rolesModulos;
+
     public Long getIdRol() {
         return idRol;
     }
@@ -64,5 +68,13 @@ public class RolesModel {
 
     public void setUsuariosRoles(List<UsuariosRolesModel> usuariosRoles) {
         this.usuariosRoles = usuariosRoles;
+    }
+
+    public List<RolesModulosModel> getRolesModulos() {
+        return rolesModulos;
+    }
+
+    public void setRolesModulos(List<RolesModulosModel> rolesModulos) {
+        this.rolesModulos = rolesModulos;
     }
 }

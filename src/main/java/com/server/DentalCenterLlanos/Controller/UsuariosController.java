@@ -1,7 +1,6 @@
 package com.server.DentalCenterLlanos.Controller;
 
 import java.security.SecureRandom;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,9 +21,14 @@ import org.springframework.web.bind.annotation.RestController;
 import com.server.DentalCenterLlanos.security.JwtUtil;
 import com.server.DentalCenterLlanos.Repository.UsuariosRepository;
 import com.server.DentalCenterLlanos.Repository.PersonasRepository;
+import com.server.DentalCenterLlanos.Dtos.Auth.LoginResponseDTO;
+import com.server.DentalCenterLlanos.Dtos.ModulosDTO.ModuloDTO;
+import com.server.DentalCenterLlanos.Dtos.PermisosDTO.PermisoDTO;
+import com.server.DentalCenterLlanos.Dtos.Personas.PersonaDTO;
+import com.server.DentalCenterLlanos.Dtos.Roles.RolDTO;
 import com.server.DentalCenterLlanos.Model.PersonasModel;
 import com.server.DentalCenterLlanos.Model.UsuariosModel;
-import com.server.DentalCenterLlanos.Model.UsuariosRolesModel;
+
 
 @CrossOrigin(origins = "*")
 @RestController
@@ -48,44 +52,82 @@ public class UsuariosController {
     }
 
     @PostMapping("/api/login")
-    public ResponseEntity<Map<String, Object>> login(@RequestBody UsuariosModel usuario) {
-        Map<String, Object> response = new HashMap<>();
+    public ResponseEntity<LoginResponseDTO> login(@RequestBody UsuariosModel usuario) {
+        LoginResponseDTO response = new LoginResponseDTO();
+
         try {
             UsuariosModel user = UsuariosRepository.findByUsuarios(usuario.getUsuarios());
-            if (user != null) {
-                if (!user.isEstado()) {
-                    response.put("authenticated", false);
-                    response.put("message", "Usuario inactivo.");
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
-                }
-                if (usuario.getContrasena().equals(user.getContrasena())) {
-                    String token = "Bearer " + JwtUtil.generateToken(user.getUsuarios(), user.getUsuariosRoles());
-                    List<Map<String, Object>> roles = new ArrayList<>();
-                    for (UsuariosRolesModel usuarioRol : user.getUsuariosRoles()) {
-                        Map<String, Object> roleData = new HashMap<>();
-                        roleData.put("id_rol", usuarioRol.getRol().getIdRol());
-                        roleData.put("nombre", usuarioRol.getRol().getNombre());
-                        roles.add(roleData);
-                    }
-                    response.put("authenticated", true);
-                    response.put("message", "Inicio de sesión exitoso");
-                    response.put("token", token);
-                    response.put("persona", user.getPersona());
-                    response.put("roles", roles);
-                    return ResponseEntity.ok(response);
-                } else {
-                    response.put("authenticated", false);
-                    response.put("message", "Usuario o contraseña incorrectos.");
-                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
-                }
-            } else {
-                response.put("authenticated", false);
-                response.put("message", "Usuario no encontrado.");
+
+            if (user == null) {
+                response.setAuthenticated(false);
+                response.setMessage("Usuario no encontrado.");
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
             }
+
+            if (!user.isEstado()) {
+                response.setAuthenticated(false);
+                response.setMessage("Usuario inactivo.");
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+            }
+
+            if (!usuario.getContrasena().equals(user.getContrasena())) {
+                response.setAuthenticated(false);
+                response.setMessage("Usuario o contraseña incorrectos.");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+            }
+
+            // ✅ Token
+            String token = "Bearer " + JwtUtil.generateToken(user.getUsuarios(), user.getUsuariosRoles());
+
+            // ✅ Convertir persona
+            PersonaDTO personaDTO = new PersonaDTO();
+            personaDTO.setIdPersona(user.getPersona().getIdPersona());
+            personaDTO.setNombres(user.getPersona().getNombres());
+            personaDTO.setApellidoPaterno(user.getPersona().getApellidoPaterno());
+            personaDTO.setApellidoMaterno(user.getPersona().getApellidoMaterno());
+            // ... mapea los demás campos de persona que necesites
+
+            List<RolDTO> roles = user.getUsuariosRoles().stream().map(ur -> {
+                RolDTO rolDTO = new RolDTO();
+                rolDTO.setIdRol(ur.getRol().getIdRol());
+                rolDTO.setNombre(ur.getRol().getNombre());
+
+                // Módulos
+                rolDTO.setModulos(
+                        ur.getRol().getRolesModulos().stream().map(rm -> {
+                            ModuloDTO moduloDTO = new ModuloDTO();
+                            moduloDTO.setIdModulo(rm.getModulo().getIdModulo());
+                            moduloDTO.setNombre(rm.getModulo().getNombre());
+                            moduloDTO.setEstado(rm.getModulo().isEstado());
+
+                            // Permisos del módulo
+                            moduloDTO.setPermisos(
+                                    rm.getModulo().getModulosPermisos().stream().map(mp -> {
+                                        PermisoDTO permisoDTO = new PermisoDTO();
+                                        permisoDTO.setIdPermiso(mp.getPermiso().getIdPermiso());
+                                        permisoDTO.setAccion(mp.getPermiso().getAccion());
+                                        permisoDTO.setEstado(mp.getPermiso().isEstado());
+                                        return permisoDTO;
+                                    }).toList());
+
+                            return moduloDTO;
+                        }).toList());
+
+                return rolDTO;
+            }).toList();
+
+            // ✅ Construir respuesta
+            response.setAuthenticated(true);
+            response.setMessage("Inicio de sesión exitoso");
+            response.setToken(token);
+            response.setPersona(personaDTO);
+            response.setRoles(roles);
+
+            return ResponseEntity.ok(response);
+
         } catch (Exception e) {
-            response.put("authenticated", false);
-            response.put("error", "Ocurrió un error durante la autenticación: " + e.getMessage());
+            response.setAuthenticated(false);
+            response.setMessage("Ocurrió un error durante la autenticación: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
