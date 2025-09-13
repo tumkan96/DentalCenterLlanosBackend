@@ -1,15 +1,15 @@
 package com.server.DentalCenterLlanos.Controller;
 
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
+import com.server.DentalCenterLlanos.Dtos.Roles.RolDTO;
+import com.server.DentalCenterLlanos.Dtos.UsuarioRolDTO.UsuarioRolDTO;
 import com.server.DentalCenterLlanos.Model.UsuariosRolesModel;
 import com.server.DentalCenterLlanos.Repository.UsuariosRolesRepository;
 
@@ -17,37 +17,101 @@ import jakarta.transaction.Transactional;
 
 @CrossOrigin(origins = "*")
 @RestController
+@RequestMapping("/api/usuariosRoles")
 public class UsuariosRolesController {
 
     @Autowired
-    public UsuariosRolesRepository usuariosRolesRepository;
+    private UsuariosRolesRepository usuariosRolesRepository;
 
-    @GetMapping("/api/listausuarioRoles")
-    public List<UsuariosRolesModel> listaUsuarioRol() {
-        return usuariosRolesRepository.findAll();
+    private UsuarioRolDTO mapToDTO(UsuariosRolesModel model) {
+        UsuarioRolDTO dto = new UsuarioRolDTO();
+
+        RolDTO rolDTO = new RolDTO();
+        rolDTO.setIdRol(model.getRol().getIdRol());
+        rolDTO.setNombre(model.getRol().getNombre());
+        rolDTO.setDescripcion(model.getRol().getDescripcion());
+        rolDTO.setEstado(model.getRol().isEstado());
+        rolDTO.setModulos(new ArrayList<>());
+
+        dto.setRol(rolDTO);
+        return dto;
+    }
+
+    @GetMapping
+    public ResponseEntity<List<UsuarioRolDTO>> listarUsuariosRoles() {
+        List<UsuariosRolesModel> lista = usuariosRolesRepository.findAll();
+        if (lista.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        }
+        List<UsuarioRolDTO> dtoList = lista.stream()
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
+        return new ResponseEntity<>(dtoList, HttpStatus.OK);
+    }
+
+    @GetMapping("/usuario/{usuario}")
+    public ResponseEntity<List<UsuarioRolDTO>> obtenerRolesPorUsuario(@PathVariable String usuario) {
+        List<UsuariosRolesModel> relaciones = usuariosRolesRepository.findByUsuario(usuario);
+        if (relaciones.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        }
+        List<UsuarioRolDTO> rolesDTO = relaciones.stream()
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
+        return new ResponseEntity<>(rolesDTO, HttpStatus.OK);
     }
 
     @Transactional
-    @PostMapping("/api/asignarUsuarioRol/{usu}/{rol}")
-    public boolean asignarUsuarioRol(@PathVariable String usu, @PathVariable Long rol) {
-        usuariosRolesRepository.addUsuarioRol(usu, rol);
-        return true;
+    @PostMapping("/asignar/{usuario}/{rolId}")
+    public ResponseEntity<Object> asignarUsuarioRol(@PathVariable String usuario, @PathVariable Long rolId) {
+        try {
+            usuariosRolesRepository.addUsuarioRol(usuario, rolId);
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "Rol asignado correctamente.");
+            return new ResponseEntity<>(response, HttpStatus.CREATED);
+        } catch (Exception e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "Error al asignar rol: " + e.getMessage());
+            return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @Transactional
-    @PutMapping("/api/modUsuarioRol/{usu}/{rol}")
-    public boolean eliminarUsuarioRol(@PathVariable String usu, @PathVariable Long rol) {
-        usuariosRolesRepository.deleteUsuarioRol(usu, rol);
-        return true;
+    @DeleteMapping("/eliminar/{usuario}/{rolId}")
+    public ResponseEntity<Object> eliminarUsuarioRol(@PathVariable String usuario, @PathVariable Long rolId) {
+        try {
+            usuariosRolesRepository.deleteUsuarioRol(usuario, rolId);
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "Rol eliminado correctamente.");
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (Exception e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "Error al eliminar rol: " + e.getMessage());
+            return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
-    @GetMapping("/api/rolOdontologos")
-    public List<UsuariosRolesModel> obtenerOdontologos() {
-        return usuariosRolesRepository.findByRolIdRol(2L);
+    @GetMapping("/odontologos")
+    public ResponseEntity<List<UsuarioRolDTO>> obtenerOdontologos() {
+        List<UsuariosRolesModel> lista = usuariosRolesRepository.findByRolIdRol(2L);
+        if (lista.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        }
+        List<UsuarioRolDTO> dtoList = lista.stream()
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
+        return new ResponseEntity<>(dtoList, HttpStatus.OK);
     }
 
-    @GetMapping("/api/rolPacientes")
-    public List<UsuariosRolesModel> obtenerPacientes() {
-        return usuariosRolesRepository.findByRolIdRol(3L);
+    @GetMapping("/pacientes")
+    public ResponseEntity<List<UsuarioRolDTO>> obtenerPacientes() {
+        List<UsuariosRolesModel> lista = usuariosRolesRepository.findByRolIdRol(3L);
+        if (lista.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        }
+        List<UsuarioRolDTO> dtoList = lista.stream()
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
+        return new ResponseEntity<>(dtoList, HttpStatus.OK);
     }
 }

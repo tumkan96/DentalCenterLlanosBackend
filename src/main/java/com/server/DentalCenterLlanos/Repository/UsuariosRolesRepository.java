@@ -27,4 +27,7 @@ public interface UsuariosRolesRepository extends JpaRepository<UsuariosRolesMode
     @Query(value = "SELECT * FROM usuarios_roles WHERE id_rol = :idRol", nativeQuery = true)
     List<UsuariosRolesModel> findByRolIdRol(@Param("idRol") Long idRol);
 
+    @Query(value = "SELECT * FROM usuarios_roles WHERE usuario = :usuario", nativeQuery = true)
+    List<UsuariosRolesModel> findByUsuario(@Param("usuario") String usuario);
+
 }

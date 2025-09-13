@@ -9,18 +9,8 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import com.server.DentalCenterLlanos.security.JwtUtil;
-import com.server.DentalCenterLlanos.Repository.UsuariosRepository;
-import com.server.DentalCenterLlanos.Repository.PersonasRepository;
 import com.server.DentalCenterLlanos.Dtos.Auth.LoginResponseDTO;
 import com.server.DentalCenterLlanos.Dtos.ModulosDTO.ModuloDTO;
 import com.server.DentalCenterLlanos.Dtos.PermisosDTO.PermisoDTO;
@@ -28,27 +18,29 @@ import com.server.DentalCenterLlanos.Dtos.Personas.PersonaDTO;
 import com.server.DentalCenterLlanos.Dtos.Roles.RolDTO;
 import com.server.DentalCenterLlanos.Model.PersonasModel;
 import com.server.DentalCenterLlanos.Model.UsuariosModel;
-
+import com.server.DentalCenterLlanos.Repository.PersonasRepository;
+import com.server.DentalCenterLlanos.Repository.UsuariosRepository;
+import com.server.DentalCenterLlanos.security.JwtUtil;
 
 @CrossOrigin(origins = "*")
 @RestController
 public class UsuariosController {
 
     @Autowired
-    private UsuariosRepository UsuariosRepository;
+    private UsuariosRepository usuariosRepository;
 
     @Autowired
     private PersonasRepository personasRepository;
 
     public UsuariosController(UsuariosRepository usuariosRepository,
             PersonasRepository personasRepository) {
-        this.UsuariosRepository = usuariosRepository;
+        this.usuariosRepository = usuariosRepository;
         this.personasRepository = personasRepository;
     }
 
     @GetMapping("/api/listarUsuarios")
     public List<UsuariosModel> listaUsuarios() {
-        return UsuariosRepository.findAll();
+        return usuariosRepository.findAll();
     }
 
     @PostMapping("/api/login")
@@ -56,7 +48,7 @@ public class UsuariosController {
         LoginResponseDTO response = new LoginResponseDTO();
 
         try {
-            UsuariosModel user = UsuariosRepository.findByUsuarios(usuario.getUsuarios());
+            UsuariosModel user = usuariosRepository.findByUsuarios(usuario.getUsuarios());
 
             if (user == null) {
                 response.setAuthenticated(false);
@@ -76,23 +68,25 @@ public class UsuariosController {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
             }
 
-            // ✅ Token
             String token = "Bearer " + JwtUtil.generateToken(user.getUsuarios(), user.getUsuariosRoles());
 
-            // ✅ Convertir persona
             PersonaDTO personaDTO = new PersonaDTO();
             personaDTO.setIdPersona(user.getPersona().getIdPersona());
             personaDTO.setNombres(user.getPersona().getNombres());
             personaDTO.setApellidoPaterno(user.getPersona().getApellidoPaterno());
             personaDTO.setApellidoMaterno(user.getPersona().getApellidoMaterno());
-            // ... mapea los demás campos de persona que necesites
+            personaDTO.setCedulaIdentidad(user.getPersona().getCedulaIdentidad());
+            personaDTO.setFotografia(user.getPersona().getFotografia());
+            personaDTO.setTelefonoCelular(user.getPersona().getTelefonoCelular());
+            personaDTO.setEstado(user.getPersona().isEstado());
 
             List<RolDTO> roles = user.getUsuariosRoles().stream().map(ur -> {
                 RolDTO rolDTO = new RolDTO();
                 rolDTO.setIdRol(ur.getRol().getIdRol());
                 rolDTO.setNombre(ur.getRol().getNombre());
+                rolDTO.setDescripcion(ur.getRol().getDescripcion());
+                rolDTO.setEstado(ur.getRol().isEstado());
 
-                // Módulos
                 rolDTO.setModulos(
                         ur.getRol().getRolesModulos().stream().map(rm -> {
                             ModuloDTO moduloDTO = new ModuloDTO();
@@ -100,7 +94,6 @@ public class UsuariosController {
                             moduloDTO.setNombre(rm.getModulo().getNombre());
                             moduloDTO.setEstado(rm.getModulo().isEstado());
 
-                            // Permisos del módulo
                             moduloDTO.setPermisos(
                                     rm.getModulo().getModulosPermisos().stream().map(mp -> {
                                         PermisoDTO permisoDTO = new PermisoDTO();
@@ -116,7 +109,6 @@ public class UsuariosController {
                 return rolDTO;
             }).toList();
 
-            // ✅ Construir respuesta
             response.setAuthenticated(true);
             response.setMessage("Inicio de sesión exitoso");
             response.setToken(token);
@@ -135,11 +127,11 @@ public class UsuariosController {
     @PutMapping("/api/cambiarEstadoUsuario/{usuarios}")
     public ResponseEntity<Object> cambiarEstadoUsuario(@PathVariable("usuarios") String usuarios,
             @RequestParam boolean estado) {
-        Optional<UsuariosModel> optionalUsuario = UsuariosRepository.findById(usuarios);
+        Optional<UsuariosModel> optionalUsuario = usuariosRepository.findById(usuarios);
         if (optionalUsuario.isPresent()) {
             UsuariosModel usuario = optionalUsuario.get();
             usuario.setEstado(estado);
-            UsuariosRepository.save(usuario);
+            usuariosRepository.save(usuario);
             Map<String, String> response = new HashMap<>();
             response.put("message", "Usuario " + (estado ? "habilitado" : "deshabilitado") + " correctamente.");
             return new ResponseEntity<>(response, HttpStatus.OK);
@@ -152,7 +144,8 @@ public class UsuariosController {
     public ResponseEntity<Map<String, String>> obtenerUltimoUsuario() {
         Map<String, String> response = new HashMap<>();
         try {
-            String ultimoUsuario = UsuariosRepository.findTopByOrderByUsuariosDesc().map(UsuariosModel::getUsuarios)
+            String ultimoUsuario = usuariosRepository.findTopByOrderByUsuariosDesc()
+                    .map(UsuariosModel::getUsuarios)
                     .orElse("u0000");
             response.put("ultimoUsuario", ultimoUsuario);
             return ResponseEntity.ok(response);
@@ -168,16 +161,20 @@ public class UsuariosController {
         Optional<PersonasModel> personaOptional = personasRepository.findById(id_persona);
         if (personaOptional.isPresent()) {
             PersonasModel persona = personaOptional.get();
-            String ultimoUsuario = UsuariosRepository.findTopByOrderByUsuariosDesc().map(UsuariosModel::getUsuarios)
+            String ultimoUsuario = usuariosRepository.findTopByOrderByUsuariosDesc()
+                    .map(UsuariosModel::getUsuarios)
                     .orElse("u0000");
             String nuevoUsuario = generarNuevoUsuario(ultimoUsuario);
             String nuevaContrasena = generarContrasenaAleatoria();
+
             UsuariosModel nuevoUsuarioModel = new UsuariosModel();
             nuevoUsuarioModel.setUsuarios(nuevoUsuario);
             nuevoUsuarioModel.setContrasena(nuevaContrasena);
             nuevoUsuarioModel.setEstado(true);
             nuevoUsuarioModel.setPersona(persona);
-            UsuariosRepository.save(nuevoUsuarioModel);
+
+            usuariosRepository.save(nuevoUsuarioModel);
+
             response.put("usuario", nuevoUsuario);
             response.put("contrasena", nuevaContrasena);
             response.put("message", "Usuario y contraseña generados exitosamente.");
@@ -192,11 +189,12 @@ public class UsuariosController {
     public ResponseEntity<Map<String, Object>> autogenerarContrasena(@PathVariable String usuarios) {
         Map<String, Object> response = new HashMap<>();
         try {
-            UsuariosModel user = UsuariosRepository.findByUsuarios(usuarios);
+            UsuariosModel user = usuariosRepository.findByUsuarios(usuarios);
             if (user != null) {
                 String nuevaContrasena = generarContrasenaAleatoria();
                 user.setContrasena(nuevaContrasena);
-                UsuariosRepository.save(user);
+                usuariosRepository.save(user);
+
                 response.put("contrasena", nuevaContrasena);
                 response.put("message", "Contraseña actualizada exitosamente.");
                 return ResponseEntity.ok(response);
@@ -221,6 +219,7 @@ public class UsuariosController {
         String numeros = "0123456789";
         SecureRandom random = new SecureRandom();
         StringBuilder contrasena = new StringBuilder();
+
         for (int i = 0; i < 4; i++) {
             contrasena.append(letras.charAt(random.nextInt(letras.length())));
         }

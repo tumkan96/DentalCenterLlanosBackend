@@ -1,5 +1,7 @@
 package com.server.DentalCenterLlanos.Dtos.Personas;
 
+import com.server.DentalCenterLlanos.Dtos.UsuariosDTO.UsuarioDTO;
+
 public class PersonaDTO {
     private Long idPersona;
     private String cedulaIdentidad;
@@ -9,7 +11,7 @@ public class PersonaDTO {
     private String fotografia;
     private String telefonoCelular;
     private boolean estado;
-
+     private UsuarioDTO usuario;
     public Long getIdPersona() {
         return idPersona;
     }
@@ -73,4 +75,13 @@ public class PersonaDTO {
     public void setEstado(boolean estado) {
         this.estado = estado;
     }
+
+        public UsuarioDTO getUsuario() {
+        return usuario;
+    }
+
+    public void setUsuario(UsuarioDTO usuario) {
+        this.usuario = usuario;
+    }
+
 }
