@@ -23,80 +23,104 @@ public class UsuariosRolesController {
     @Autowired
     private UsuariosRolesRepository usuariosRolesRepository;
 
+    public UsuariosRolesController() {
+        System.out.println("UsuariosRolesController inicializado correctamente");
+    }
+
     private UsuarioRolDTO mapToDTO(UsuariosRolesModel model) {
         UsuarioRolDTO dto = new UsuarioRolDTO();
 
-        RolDTO rolDTO = new RolDTO();
-        rolDTO.setIdRol(model.getRol().getIdRol());
-        rolDTO.setNombre(model.getRol().getNombre());
-        rolDTO.setDescripcion(model.getRol().getDescripcion());
-        rolDTO.setEstado(model.getRol().isEstado());
-        rolDTO.setModulos(new ArrayList<>());
+        // Evita errores por null
+        if (model.getUsuario() != null) {
+            dto.setUsuario(model.getUsuario().getUsuarios()); // Asume que getUsuarios() devuelve el ID tipo String
+        }
 
-        dto.setRol(rolDTO);
+        if (model.getRol() != null) {
+            RolDTO rolDTO = new RolDTO();
+            rolDTO.setIdRol(model.getRol().getIdRol());
+            rolDTO.setNombre(model.getRol().getNombre());
+            rolDTO.setDescripcion(model.getRol().getDescripcion());
+            rolDTO.setEstado(model.getRol().isEstado());
+            rolDTO.setModulos(new ArrayList<>());
+
+            dto.setRol(rolDTO);
+        }
+
         return dto;
     }
 
     @GetMapping
     public ResponseEntity<List<UsuarioRolDTO>> listarUsuariosRoles() {
+        System.out.println("Llamada a listarUsuariosRoles");
         List<UsuariosRolesModel> lista = usuariosRolesRepository.findAll();
         if (lista.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
+
         List<UsuarioRolDTO> dtoList = lista.stream()
                 .map(this::mapToDTO)
                 .collect(Collectors.toList());
         return new ResponseEntity<>(dtoList, HttpStatus.OK);
     }
 
-    @GetMapping("/usuario/{usuario}")
-    public ResponseEntity<List<UsuarioRolDTO>> obtenerRolesPorUsuario(@PathVariable String usuario) {
-        List<UsuariosRolesModel> relaciones = usuariosRolesRepository.findByUsuario(usuario);
-        if (relaciones.isEmpty()) {
+    @GetMapping("/verUsuarioRoles/{usuario}")
+    public ResponseEntity<List<UsuarioRolDTO>> verUsuarioRoles(@PathVariable String usuario) {
+        System.out.println("Llamada a verUsuarioRoles para usuario: " + usuario);
+        List<UsuariosRolesModel> relaciones = usuariosRolesRepository.findByUsuarioUsuarios(usuario);
+        if (relaciones == null || relaciones.isEmpty()) {
+            System.out.println("No se encontraron roles para usuario: " + usuario);
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
+
         List<UsuarioRolDTO> rolesDTO = relaciones.stream()
                 .map(this::mapToDTO)
                 .collect(Collectors.toList());
+        System.out.println("Roles encontrados para usuario " + usuario + ": " + rolesDTO.size());
         return new ResponseEntity<>(rolesDTO, HttpStatus.OK);
     }
 
     @Transactional
     @PostMapping("/asignar/{usuario}/{rolId}")
     public ResponseEntity<Object> asignarUsuarioRol(@PathVariable String usuario, @PathVariable Long rolId) {
+        System.out.println("Llamada a asignarUsuarioRol para usuario: " + usuario + ", rol: " + rolId);
         try {
             usuariosRolesRepository.addUsuarioRol(usuario, rolId);
-            Map<String, String> response = new HashMap<>();
-            response.put("message", "Rol asignado correctamente.");
-            return new ResponseEntity<>(response, HttpStatus.CREATED);
+            System.out.println("Rol " + rolId + " asignado a usuario " + usuario);
+
+            return new ResponseEntity<>(Map.of("message", "Rol asignado correctamente."), HttpStatus.CREATED);
         } catch (Exception e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", "Error al asignar rol: " + e.getMessage());
-            return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
+            System.err.println("Error al asignar rol para usuario " + usuario + ": " + e.getMessage());
+
+            return new ResponseEntity<>(Map.of("error", "Error al asignar rol: " + e.getMessage()),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     @Transactional
     @DeleteMapping("/eliminar/{usuario}/{rolId}")
     public ResponseEntity<Object> eliminarUsuarioRol(@PathVariable String usuario, @PathVariable Long rolId) {
+        System.out.println("Llamada a eliminarUsuarioRol para usuario: " + usuario + ", rol: " + rolId);
         try {
             usuariosRolesRepository.deleteUsuarioRol(usuario, rolId);
-            Map<String, String> response = new HashMap<>();
-            response.put("message", "Rol eliminado correctamente.");
-            return new ResponseEntity<>(response, HttpStatus.OK);
+            System.out.println("Rol " + rolId + " eliminado de usuario " + usuario);
+
+            return new ResponseEntity<>(Map.of("message", "Rol eliminado correctamente."), HttpStatus.OK);
         } catch (Exception e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", "Error al eliminar rol: " + e.getMessage());
-            return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
+            System.err.println("Error al eliminar rol para usuario " + usuario + ": " + e.getMessage());
+
+            return new ResponseEntity<>(Map.of("error", "Error al eliminar rol: " + e.getMessage()),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     @GetMapping("/odontologos")
     public ResponseEntity<List<UsuarioRolDTO>> obtenerOdontologos() {
+        System.out.println("Llamada a obtenerOdontologos");
         List<UsuariosRolesModel> lista = usuariosRolesRepository.findByRolIdRol(2L);
         if (lista.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
+
         List<UsuarioRolDTO> dtoList = lista.stream()
                 .map(this::mapToDTO)
                 .collect(Collectors.toList());
@@ -105,10 +129,12 @@ public class UsuariosRolesController {
 
     @GetMapping("/pacientes")
     public ResponseEntity<List<UsuarioRolDTO>> obtenerPacientes() {
+        System.out.println("Llamada a obtenerPacientes");
         List<UsuariosRolesModel> lista = usuariosRolesRepository.findByRolIdRol(3L);
         if (lista.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
+
         List<UsuarioRolDTO> dtoList = lista.stream()
                 .map(this::mapToDTO)
                 .collect(Collectors.toList());

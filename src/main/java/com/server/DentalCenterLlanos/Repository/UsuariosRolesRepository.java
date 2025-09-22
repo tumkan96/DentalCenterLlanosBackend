@@ -11,6 +11,8 @@ import com.server.DentalCenterLlanos.Model.UsuariosRolesModel;
 import com.server.DentalCenterLlanos.Model.UsuariosRolesPK;
 
 public interface UsuariosRolesRepository extends JpaRepository<UsuariosRolesModel, UsuariosRolesPK> {
+    @Query("SELECT ur FROM UsuariosRolesModel ur WHERE ur.usuario.usuarios = :usuarios")
+    List<UsuariosRolesModel> findByUsuarioUsuarios(@Param("usuarios") String usuarios);
 
     @Modifying
     @Query(value = "INSERT INTO usuarios_roles (usuario, id_rol) VALUES (:usuario, :idRol)", nativeQuery = true)
