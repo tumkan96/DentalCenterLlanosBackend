@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 import com.server.DentalCenterLlanos.Dtos.Roles.RolDTO;
 import com.server.DentalCenterLlanos.Dtos.UsuarioRolDTO.UsuarioRolDTO;
+import com.server.DentalCenterLlanos.Dtos.UsuarioRolDTO.UsuarioRolPersonaDTO;
 import com.server.DentalCenterLlanos.Model.UsuariosRolesModel;
 import com.server.DentalCenterLlanos.Repository.UsuariosRolesRepository;
 
@@ -125,6 +126,38 @@ public class UsuariosRolesController {
                 .map(this::mapToDTO)
                 .collect(Collectors.toList());
         return new ResponseEntity<>(dtoList, HttpStatus.OK);
+    }
+
+    @GetMapping("/usuarioRolOdontologo")
+    public ResponseEntity<List<UsuarioRolPersonaDTO>> obtenerUsuariosRolOdontologo() {
+        Long idRolOdontologo = 3L;
+
+        List<UsuariosRolesModel> usuariosRoles = usuariosRolesRepository.findByRolIdRol(idRolOdontologo);
+
+        List<UsuarioRolPersonaDTO> resultado = usuariosRoles.stream()
+                .map(ur -> new UsuarioRolPersonaDTO(
+                        ur.getUsuario().getUsuarios(),
+                        ur.getUsuario().getPersona(),
+                        ur.getRol()))
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(resultado);
+    }
+
+    @GetMapping("/usuarioRolPaciente")
+    public ResponseEntity<List<UsuarioRolPersonaDTO>> obtenerUsuariosRolPaciente() {
+        Long idRolPaciente = 4L;
+
+        List<UsuariosRolesModel> usuariosRoles = usuariosRolesRepository.findByRolIdRol(idRolPaciente);
+
+        List<UsuarioRolPersonaDTO> resultado = usuariosRoles.stream()
+                .map(ur -> new UsuarioRolPersonaDTO(
+                        ur.getUsuario().getUsuarios(),
+                        ur.getUsuario().getPersona(),
+                        ur.getRol()))
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(resultado);
     }
 
     @GetMapping("/pacientes")

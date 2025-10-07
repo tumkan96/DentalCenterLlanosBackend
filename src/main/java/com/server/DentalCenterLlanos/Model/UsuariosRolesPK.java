@@ -5,7 +5,7 @@ import java.util.Objects;
 
 public class UsuariosRolesPK implements Serializable {
 	protected String usuario;
-	protected int id_rol;
+	protected Long id_rol;
 
 	public String getUsuario() {
 		return usuario;
@@ -15,11 +15,11 @@ public class UsuariosRolesPK implements Serializable {
 		this.usuario = usuario;
 	}
 
-	public int getId_rol() {
+	public Long getId_rol() {
 		return id_rol;
 	}
 
-	public void setId_rol(int id_rol) {
+	public void setId_rol(Long id_rol) {
 		this.id_rol = id_rol;
 	}
 
